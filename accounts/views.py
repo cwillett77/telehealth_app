@@ -8,8 +8,19 @@ from .serializers import UserSerializer
 def register(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=201)
+        user = serializer.save()
+        token, created = Token.objects.get_or_create(user=user)
+        user_type = serializer.validated_data.get('user_type')
+
+        if user_type == 'doctor':
+            Doctor.objects.create(user=user, specialization=serializer.validated_data.get('specialization'), credentials=serializer.validated_data.get('credentials'))
+        elif user_type == 'patient':
+            Patient.objects.create(user=user)
+
+        return Response({
+            "user": serializer.data,
+            "token": token.key
+        }, status=201)
     return Response(serializer.errors, status=400)
 
 @api_view(['POST'])

@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'channels',
     'booking',
+    'accounts',
+    'corsheaders',
 ]
 
 REST_FRAMEWORK = {
@@ -48,9 +50,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = 'telehealth_app.urls'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React app
+]
 
 TEMPLATES = [
     {
@@ -80,6 +87,8 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 
 # Password validation
