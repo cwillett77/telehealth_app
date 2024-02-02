@@ -1,23 +1,22 @@
 from rest_framework import serializers
 from .models import CustomUser
 
-class UserSerializer(serializers.ModelSerializer):
-    # Define fields that are specific to doctors
-    specialization = serializers.CharField(allow_blank=True, required=False)
-    credentials = serializers.CharField(allow_blank=True, required=False)
-
+class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['username', 'password', 'email', 'first_name', 'last_name', 'user_type', 'specialization', 'credentials']
+        fields = ('username', 'email', 'password', 'user_type', 'specialization', 'credentials')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        # Custom logic to handle userType, specialization, and credentials
         user_type = validated_data.get('user_type')
+        if user_type == 'doctor':
+            # Validate doctor-specific fields here if necessary
+            pass
+        user = CustomUser.objects.create_user(**validated_data)
+        return user
 
-        # Remove specialization and credentials for patients
-        if user_type == 'patient':
-            validated_data.pop('specialization', None)
-            validated_data.pop('credentials', None)
-
-        return CustomUser.objects.create_user(**validated_data)
+    def validate(self, data):
+        user_type = data.get('user_type')
+        if user_type == 'doctor' and (not data.get('specialization') or not data.get('credentials')):
+            raise serializers.ValidationError("Doctors must provide specialization and credentials.")
+        return data

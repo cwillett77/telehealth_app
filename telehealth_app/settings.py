@@ -25,7 +25,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'channels',
-    'booking',
+    # 'booking',
     'accounts',
     'corsheaders',
 ]
