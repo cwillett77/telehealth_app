@@ -21,7 +21,7 @@ def login(request):
     user = authenticate(username=username, password=password)
     if user:
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key}, status=200)
+        return Response({'token': token.key, "username": username, "id": user.id, "user_type": user.user_type}, status=200)
     return Response({'error': 'Invalid Credentials'}, status=400)
 
 @api_view(['POST'])
