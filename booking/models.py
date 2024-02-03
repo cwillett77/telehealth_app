@@ -1,22 +1,10 @@
-# from django.db import models
+from django.db import models
+from accounts.models import CustomUser
 
-# class Patient(models.Model):
-#     name = models.CharField(max_length=100)
-#     date_of_birth = models.DateField()
+class Availability(models.Model):
+    doctor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='availabilities', limit_choices_to={'user_type': 'doctor'})
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
 
-# class Doctor(models.Model):
-#     name = models.CharField(max_length=100)
-#     specialization = models.CharField(max_length=100)
-#     contact_info = models.CharField(max_length=100)
-
-#     def __str__(self):
-#         return self.name
-
-# class Appointment(models.Model):
-#     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
-#     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
-#     appointment_time = models.DateTimeField()
-#     status = models.CharField(max_length=100)  # e.g., scheduled, completed, cancelled
-
-#     def __str__(self):
-#         return f"{self.patient.name} - {self.doctor.name} on {self.appointment_time}"
+    def __str__(self):
+        return f"{self.doctor.username} available from {self.start_time} to {self.end_time}"
