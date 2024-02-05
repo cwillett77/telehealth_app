@@ -3,8 +3,14 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import CustomUserSerializer
+from rest_framework import viewsets
+from .models import CustomUser
+from .serializers import CustomUserSerializer, DoctorSerializer
 
+class DoctorListViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = CustomUser.objects.filter(user_type="doctor")
+    serializer_class = DoctorSerializer
+    
 @api_view(['POST'])
 def register(request):
     if request.method == 'POST':
