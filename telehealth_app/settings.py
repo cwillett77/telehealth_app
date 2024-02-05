@@ -55,8 +55,23 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'telehealth_app.urls'
 
+CORS_ALLOW_ALL_ORIGINS = False
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React app
+    "http://localhost:3000", # React Front-end
+    "http://127.0.0.1:3000", # React Front-end
+]
+
+# CORS_ALLOWED_ORIGINS = ["*"]
+# ALLOWED_HOSTS = ['*']
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS',
 ]
 
 TEMPLATES = [
