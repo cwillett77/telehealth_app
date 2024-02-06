@@ -11,6 +11,10 @@ class DoctorListViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CustomUser.objects.filter(user_type="doctor")
     serializer_class = DoctorSerializer
     
+class DoctorViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = CustomUser.objects.filter(user_type="doctor")
+    serializer_class = CustomUserSerializer
+    
 @api_view(['POST'])
 def register(request):
     if request.method == 'POST':

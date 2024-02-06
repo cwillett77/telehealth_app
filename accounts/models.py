@@ -27,3 +27,4 @@ class CustomUser(AbstractUser):
         related_name="customuser_permissions",
         related_query_name="customuser",
     )
+
