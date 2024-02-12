@@ -8,7 +8,7 @@ class CustomUser(AbstractUser):
     )
     user_type = models.CharField(max_length=7, choices=USER_TYPES)
     specialization = models.CharField(max_length=100, blank=True, null=True)
-    credentials = models.CharField(max_length=300, blank=True, null=True)
+    credentials = models.TextField(blank=True, null=True)
 
     # Adjust the related_name for groups and user_permissions
     groups = models.ManyToManyField(

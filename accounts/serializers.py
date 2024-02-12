@@ -2,11 +2,15 @@ from rest_framework import serializers
 from .models import CustomUser
 
 class DoctorSerializer(serializers.ModelSerializer):
+    credentials = serializers.CharField(allow_blank=True, allow_null=True, style={'base_template': 'textarea.html'})
+     
     class Meta:
         model = CustomUser
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'specialization', 'credentials')
 
 class CustomUserSerializer(serializers.ModelSerializer):
+    credentials = serializers.CharField(allow_blank=True, allow_null=True, style={'base_template': 'textarea.html'})
+    
     class Meta:
         model = CustomUser
         fields = ('username', 'email', 'first_name', 'last_name', 'password', 'user_type', 'specialization', 'credentials')
