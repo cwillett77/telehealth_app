@@ -7,5 +7,5 @@ router.register(r'availabilities', AvailabilityViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('availabilities/<int:doctor_id>/<int:availability_id>/', AvailabilityViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='availability-detail'),
+    path('availabilities/<int:doctor_id>/<int:pk>/', AvailabilityViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='availability-detail'),
 ]
