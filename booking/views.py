@@ -1,10 +1,12 @@
+from accounts.models import CustomUser
 from rest_framework import viewsets
 from .models import Availability
 from .serializers import AvailabilitySerializer
 from rest_framework import status
 from rest_framework.response import Response
-from datetime import timedelta
-from django.utils import timezone
+from datetime import timedelta, datetime, timezone
+from django.utils import timezone as dj_timezone
+from django.utils import timezone as dj_timezone
 
 def generate_time_slots(start_time, end_time):
     time_slots = []
@@ -31,11 +33,42 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
 
         # Convert datetime fields to local timezone before sending to serializer
         for availability in queryset:
-            availability.start_time = timezone.localtime(availability.start_time)
-            availability.end_time = timezone.localtime(availability.end_time)
+            availability.start_time = dj_timezone.localtime(availability.start_time)
+            availability.end_time = dj_timezone.localtime(availability.end_time)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    
+    def create(self, request):
+        doctor_id = request.data.get('doctor')
+        start_time = request.data.get('start_time')
+        end_time = request.data.get('end_time')
+
+        # Ensure the start_time and end_time strings are in the correct format
+        if start_time.endswith('Z'):
+            start_time = start_time[:-1]  # Remove the trailing 'Z'
+        if end_time.endswith('Z'):
+            end_time = end_time[:-1]  # Remove the trailing 'Z'
+
+        # Parse the datetime strings and make them timezone-aware in UTC
+        start_time = dj_timezone.make_aware(datetime.fromisoformat(start_time), timezone=timezone.utc)
+        end_time = dj_timezone.make_aware(datetime.fromisoformat(end_time), timezone=timezone.utc)
+
+
+        # Generate 30-minute time slots
+        time_slots = generate_time_slots(start_time, end_time)
+
+        # Create new availability records for each time slot
+        for time_slot in time_slots:
+            create_availability_record(
+                doctor=CustomUser.objects.get(id=doctor_id),
+                start_time=time_slot,
+                end_time=time_slot + timedelta(minutes=30)
+            )
+
+        return Response({"message": "Availability created successfully"}, status=status.HTTP_201_CREATED)
+
 
     def retrieve(self, request, pk=None):
         doctor_id = request.query_params.get('doctor_id')
@@ -44,8 +77,8 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
             availability = self.queryset.filter(doctor_id=doctor_id, pk=pk).first()
             if availability is not None:
                 # Convert datetime fields to local timezone before sending to serializer
-                availability.start_time = timezone.localtime(availability.start_time)
-                availability.end_time = timezone.localtime(availability.end_time)
+                availability.start_time = dj_timezone.localtime(availability.start_time)
+                availability.end_time = dj_timezone.localtime(availability.end_time)
 
                 serializer = self.get_serializer(availability)
                 return Response(serializer.data)
@@ -55,16 +88,19 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_400_BAD_REQUEST)
         
     def update(self, request, doctor_id, pk=None):
+        # Retrieve the specific availability
         queryset = Availability.objects.filter(doctor_id=doctor_id, id=pk)
         
         if not queryset.exists():
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         availability = queryset.first()
+
+        # Update the availability with the new data
         serializer = self.get_serializer(availability, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        
+
         # Generate 30-minute time slots
         time_slots = generate_time_slots(availability.start_time, availability.end_time)
         
@@ -73,9 +109,14 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
         
         # Create new availability records for each time slot
         for time_slot in time_slots:
-            create_availability_record(doctor=availability.doctor, start_time=time_slot, end_time=time_slot + timedelta(minutes=30))
-            
+            create_availability_record(
+                doctor=availability.doctor,
+                start_time=time_slot,
+                end_time=time_slot + timedelta(minutes=30)
+            )
+        
         return Response(serializer.data)
+
 
 
     def destroy(self, request, doctor_id, pk=None):
