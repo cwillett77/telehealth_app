@@ -27,9 +27,9 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
     def list(self, request):
         doctor_id = request.query_params.get('doctor_id')
         if doctor_id is not None:
-            queryset = self.queryset.filter(doctor_id=doctor_id)
+            queryset = self.queryset.filter(doctor_id=doctor_id).order_by('start_time')
         else:
-            queryset = self.queryset
+            queryset = self.queryset.order_by('start_time')
 
         # Convert datetime fields to local timezone before sending to serializer
         for availability in queryset:
@@ -100,6 +100,13 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(availability, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        
+        # Delete conflicting availabilities
+        Availability.objects.filter(
+            doctor=availability.doctor,
+            start_time__lt=availability.end_time,
+            end_time__gt=availability.start_time,
+            ).exclude(id=availability.id).delete()
 
         # Generate 30-minute time slots
         time_slots = generate_time_slots(availability.start_time, availability.end_time)
